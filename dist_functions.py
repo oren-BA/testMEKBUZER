@@ -50,7 +50,7 @@ def dist_kernel(A, B, p, C):
     # Block id in a 1D grid
     bx = cuda.blockIdx.x
     s_arr = cuda.shared.array(1, dtype=np.int32)  #todo: I'm not sure regarding int64
-    cuda.atomic.add(s_arr,0,abs(A[tx][bx] - B[tx][bx])**p)
+    cuda.atomic.add(s_arr, 0, abs(A[tx][bx] - B[tx][bx])**p)
     cuda.syncthreads() # wait until all blocks finished
     if tx == 0:
         cuda.atomic.add(C,0,s_arr[0])

@@ -32,19 +32,32 @@ def matmul_transpose_gpu(X):
 
 @cuda.jit
 def matmul_kernel(A, C):
+    n, m = C.shape
     tx = cuda.threadIdx.x
-    for i in range(A.shape[0]):
-        for j in range(A.shape[0]):
-            s_arr = cuda.shared.array(1, dtype=np.int32)  # todo: I'm not sure regarding int64
-            # todo: maybe we should initialized to 0
-            iter_num = A.shape[1]//1024 if(A.shape[1] % 1024 ==0) else (A.shape[1]//1024 + 1)
-            for k in range(iter_num):
-                if 1024*k + tx < A.shape[1]:
-                  cuda.atomic.add(s_arr, 0, A[i][k*1024 +tx]*A[k*1024 +tx][j])
-            cuda.syncthreads()  # wait until all blocks finished
+    i=0
+    # todo: there are warning here : expected type int, got property instead...
+    while 1024*i < n**2:
+        if (1024*i + tx) <n**2:
+            sum = 0
+            for k in range(m):
+                sum += A[(1024*i+tx)//n][k]*A[k][(1024*i +tx) % n]
+            C[(1024*i+tx)//n][(1024*i +tx) % n] = sum
+        i += 1
 
-            if tx == 0:
-                C[i][j] = s_arr[0]
+
+    # this works really well with m>=1000 (actually if this 1001,2001 it will not be that good..
+    #tx = cuda.threadIdx.x
+    #for i in range(A.shape[0]):
+    #    for j in range(A.shape[0]):
+    #        s_arr = cuda.shared.array(1, dtype=np.int32)  # todo: I'm not sure regarding int64
+    #        # todo: maybe we should initialized to 0
+    #        iter_num = A.shape[1]//1024 if(A.shape[1] % 1024 ==0) else (A.shape[1]//1024 + 1)
+    #        for k in range(iter_num):
+    #            if 1024*k + tx < A.shape[1]:
+    #              cuda.atomic.add(s_arr, 0, A[i][k*1024 +tx]*A[k*1024 +tx][j])
+    #        cuda.syncthreads()  # wait until all blocks finished
+    #        if tx == 0:
+    #            C[i][j] = s_arr[0]
 
 #this is the comparison function - keep it as it is, don't change X or Y.
 def matmul_comparison():
@@ -59,5 +72,5 @@ def matmul_comparison():
     print('CUDA:', timer(matmul_transpose_gpu, 1))
 
 
-if __name__ == '_main_':
+if __name__ == '__main__':
     matmul_comparison()
