@@ -33,16 +33,16 @@ def matmul_transpose_gpu(X):
 @cuda.jit
 def matmul_kernel(A, C):
     n, m = C.shape
-    tx = cuda.threadIdx.x
-    i=0
+    # tx = cuda.threadIdx.x
+    # i=0
     # todo: there are warning here : expected type int, got property instead...
-    while 1024*i < n**2:
-        if (1024*i + tx) <n**2:
-            sum = 0
-            for k in range(m):
-                sum += A[(1024*i+tx)//n][k]*A[k][(1024*i +tx) % n]
-            C[(1024*i+tx)//n][(1024*i +tx) % n] = sum
-        i += 1
+    # while 1024*i < n**2:
+    #     if (1024*i + tx) <n**2:
+    #         sum = 0
+    #         for k in range(m):
+    #             sum += A[(1024*i+tx)//n][k]*A[k][(1024*i +tx) % n]
+    #         C[(1024*i+tx)//n][(1024*i +tx) % n] = sum
+    #     i += 1
 
 
     # this works really well with m>=1000 (actually if this 1001,2001 it will not be that good..
@@ -58,6 +58,19 @@ def matmul_kernel(A, C):
     #        cuda.syncthreads()  # wait until all blocks finished
     #        if tx == 0:
     #            C[i][j] = s_arr[0]
+
+    # ***********************
+    tx = int(cuda.threadIdx.x)
+    thread_rows = A.shape[0] // 1024
+    first_row = 0
+    if tx < A.shape[0] % 1024:
+        thread_rows += 1
+        first_row = tx*thread_rows + tx
+    if tx > A.shape[0] % 1024:
+        first_row = thread_rows*tx + A.shape[0] % 1024
+    for i in range(first_row, first_row + thread_rows):
+        for j in range(A.shape[0]):
+            C[i][j] = A[i]*A[j]
 
 #this is the comparison function - keep it as it is, don't change X or Y.
 def matmul_comparison():
