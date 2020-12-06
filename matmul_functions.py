@@ -32,10 +32,9 @@ def matmul_transpose_gpu(X):
 
 @cuda.jit
 def matmul_kernel(A, C):
-    n, m = C.shape
+    # n, m = C.shape
     # tx = cuda.threadIdx.x
     # i=0
-    # todo: there are warning here : expected type int, got property instead...
     # while 1024*i < n**2:
     #     if (1024*i + tx) <n**2:
     #         sum = 0
@@ -65,12 +64,15 @@ def matmul_kernel(A, C):
     first_row = 0
     if tx < A.shape[0] % 1024:
         thread_rows += 1
-        first_row = tx*thread_rows + tx
+        first_row = tx*thread_rows
     if tx > A.shape[0] % 1024:
         first_row = thread_rows*tx + A.shape[0] % 1024
     for i in range(first_row, first_row + thread_rows):
         for j in range(A.shape[0]):
-            C[i][j] = A[i]*A[j]
+            sum = 0
+            for k in range(A.shape[1]):
+                sum += A[i][k]*A[k][j]
+            C[i][j] = sum
 
 #this is the comparison function - keep it as it is, don't change X or Y.
 def matmul_comparison():
