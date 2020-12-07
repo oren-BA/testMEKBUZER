@@ -40,5 +40,5 @@ print('Time matmul_np:', stop1 - start1)
     add training of nn with matmul_numba and matmul_gpu after implementing them
 '''
 #testing neural network
-# accuracy = nn.validate(test_data) / 100.0
-# print("Test Accuracy: " + str(accuracy) + "%")
+accuracy = nn.validate(test_data) / 100.0
+print("Test Accuracy: " + str(accuracy) + "%")
