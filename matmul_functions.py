@@ -47,53 +47,6 @@ def matmul_kernel(A, C):
         i += 1
 
 
-    # this works really well with m>=1000 (actually if this 1001,2001 it will not be that good..
-    #tx = cuda.threadIdx.x
-    #for i in range(A.shape[0]):
-    #    for j in range(A.shape[0]):
-    #        s_arr = cuda.shared.array(1, dtype=np.int32)  # todo: I'm not sure regarding int64
-    #        # todo: maybe we should initialized to 0
-    #        iter_num = A.shape[1]//1024 if(A.shape[1] % 1024 ==0) else (A.shape[1]//1024 + 1)
-    #        for k in range(iter_num):
-    #            if 1024*k + tx < A.shape[1]:
-    #              cuda.atomic.add(s_arr, 0, A[i][k*1024 +tx]*A[k*1024 +tx][j])
-    #        cuda.syncthreads()  # wait until all blocks finished
-    #        if tx == 0:
-    #            C[i][j] = s_arr[0]
-
-    # ***********************
-    #tx = int(cuda.threadIdx.x)
-    #thread_rows = A.shape[0] // 1024
-    #first_row = 0
-    #if tx < A.shape[0] % 1024:
-    #    thread_rows += 1
-    #    first_row = tx*thread_rows
-    #if tx > A.shape[0] % 1024:
-    #    first_row = thread_rows*tx + A.shape[0] % 1024
-    #for i in range(first_row, first_row + thread_rows):
-    #    for j in range(A.shape[0]):
-    #        sum = 0
-    #        for k in range(A.shape[1]):
-    #           sum += A[i][k]*A[k][j]
-    #      C[i][j] = sum
-
-    #n, m = A.shape
-    #stide = (n**2)//1024
-    #tx = cuda.threadIdx.x
-    #i = tx*stide
-    #while i < (tx+1)*stide:
-    #    sum = 0
-    #    for k in range(m):
-    #        sum += A[i//n][k]*A[k][i % n]
-    #    C[i//n][i % n] = sum
-    #    i += 1
-    #if tx < stide:  # some threads need to work a bit harder :)
-    #    sum = 0
-    #    for k in range(m):
-    #        sum += A[(n**2 - tx)// n][k] * A[k][(n**2 - tx) % n]
-    #    C[(n**2 - tx) // n][(n**2 - tx) % n] = sum
-
-
 
 #this is the comparison function - keep it as it is, don't change X or Y.
 def matmul_comparison():
